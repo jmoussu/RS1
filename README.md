@@ -112,3 +112,128 @@ et
 `sudo reboot`
 
 ##  Arretez les services dont vous n’avez pas besoin pour ce projet.
+
+ Lister les service :
+ Absolument tout !
+ `systemctl list-unit-files`
+ Seulement les serice non statique (plus utile) :
+ `sudo systemctl stop monservice`
+
+ Ayant une VM déjà faite pour les serveur web je n'ai pas beaucoup de service inutile.
+
+-Acpid : Gestion d'allimentation (utile surtout pour les laptop)
+- Virtualbox-guest-utils : Pasfonctionelle de tout façon sur ma VM !
+
+Commandes utile pour arreter ou desactiver un service :
+`sudo systemctl stop monservice`
+`sudo systemctl disable <services inutiles>`
+`sudo update-rc.d monservice disable`
+
+## Réalisez un script qui met à jour l’ensemble des sources de package, puis de vos Packages et qui log l’ensemble dans un fichier nommé /var/log/update_script.log.
+Le-dit script est placer dans /root/scripts/update_script.sh pour qu'il soit proteger et `chmod 700 /root/scripts/update_script.sh`	
+
+`#! /bin/bash
+LOG_FILE=/var/log/update_script.log
+echo "WAIT PLEASE..."
+echo "
+
+//// NEW LOG ////" 1>>$LOG_FILE
+echo "Date du jour :" 1>>$LOG_FILE
+date 1>>$LOG_FILE
+apt-get update 1>>$LOG_FILE
+apt-get upgrade 1>>$LOG_FILE
+echo "This script RUN:"
+echo "apt-get update 1>>$LOG_FILE AND apt-get upgrade 1>>$LOG_FILE"
+echo "Log are in /var/log/update_script.log"`
+
+On trouve dans var/log/update_script.log
+`
+
+//// NEW LOG ////
+Date du jour :
+vendredi 1 mars 2019, 17:55:30 (UTC+0100)
+Atteint:1 http://fr.archive.ubuntu.com/ubuntu xenial InRelease
+Réception de:2 http://fr.archive.ubuntu.com/ubuntu xenial-updates InRelease [109 kB]
+Réception de:3 http://fr.archive.ubuntu.com/ubuntu xenial-backports InRelease [107 kB]
+Réception de:4 http://security.ubuntu.com/ubuntu xenial-security InRelease [109 kB]
+325 ko réceptionnés en 0s (1 042 ko/s)
+Lecture des listes de paquets…
+Lecture des listes de paquets…
+Construction de l'arbre des dépendances…
+Lecture des informations d'état…
+Calcul de la mise à jour…
+Les paquets suivants ont été conservés :
+  linux-generic linux-headers-generic linux-image-generic ubuntu-minimal
+0 mis à jour, 0 nouvellement installés, 0 à enlever et 4 non mis à jour.`
+
+Pour eviter que mon fichier explose en taille j'ai ajouter une regle dans logrotate `/etc/logrotate.d`
+
+`/var/log/update_script.log {
+    rotate 1
+    size 5k
+    missingok
+    notifempty
+    create 440 root root
+}`
+
+rotate est le nombre d’indice de fichiers de logs à atteindre avant la suppression du fichier le plus ancien. 
+size force la rotation du fichier de logs si celui atteint 5Ko. Cette indication écrase donc daily.
+missingok force Logrotate à créer un nouveau fichier de logs si celui étant ouvert devient introuvable.
+notifempty empèche une rotation de fichier de logs si celui est vide.
+create permet de définir les droits sur un fichier de logs ainsi que son appartenance.
+
+Cela va faire un fichier de log de rotation si le fichier depasse de 5Ko 
+Lors d'une autre rotation le fichier de rotation sera supprimer.
+Logrotate a une configuration par defaut qui lui permet de ce lancer tout les jours.
+On peut simuler sont lancement avec ; `sudo logrotate /etc/logrotate.conf --debug`
+Ou le lancer avec `sudo logrotate /etc/logrotate.conf`
+
+
+##Créez une tache planifiée pour ce script une fois par semaine à 4h00 du matin et à chaque reboot de la machine.
+
+J'ai ajouter les ligne 
+`0 4     * * 1   root    /root/scripts/update_script.sh  >> /var/log/update_script.log
+@reboot         root    /root/scripts/update_script.sh  >> /var/log/update_script.log`
+
+Dans `/etc/contab`
+Apres un 'sudo reboot' Cela fonctionne bien le fichier de log affiche un nouveau log.
+
+##Réalisez un script qui permet de surveiller les modifications du fichier /etc/crontab et envoie un mail à root si celui-ci a été modifié.
+
+Installation de mail en local : `sudo apt-get install mailutils`
+
+Envoie du mail : `echo "missive" | mail -s "subject" root`
+Lecture du mail : `sudo cat /var/mail/root`
+
+Scripte dans `/root/scripts/cron_watchdog.sh`:
+`
+#!/bin/bash
+FILECHECKSUM="/root/scripts/checksum_de_etc_contab"
+FILE_TO_WATCH="/etc/crontab"
+CHECKSUM=$(md5sum $FILE_TO_WATCH)
+if [ ! -f $FILECHECKSUM ]
+then
+	echo "$CHECKSUM" > $FILECHECKSUM
+	echo "1er lancement du script mise en place du Checksum de $FILE_TO_WATCH dans $FILECHECKSUM"
+	exit 0;
+fi;
+if [ "$CHECKSUM" != "$(cat $FILECHECKSUM)" ];
+then
+	echo "$CHECKSUM" > $FILECHECKSUM
+	echo "$FILE_TO_WATCH has been modified !" | mail -s "$FILE_TO_WATCH modified !" root
+	echo "$FILE_TO_WATCH has beed modified ! Mail send to root, check /var/mail/root"
+else
+	echo "$FILE_TO_WATCH hasn't beed modified."
+fi;
+`
+
+## Créez une tache plannifiée pour script tous les jours à minuit.
+
+Vu que notre script cherche les modification de `/etc/crontab` il serait peu sensé ce le placer dedans pour le lancer.
+Il sufirait de modifier crontab eb suprimant le ligne pour qu'il ne se lance plus !
+On va donc le lancer depuis le crontab de root : `/var/spool/cron/crontabs/root` ou `en su : crontab -e`
+La ligne : `# 0 0 * * * /bin/sh /path/to/this/script.sh`
+
+##Partie optionnelle WEB
+
+## Vous devez mettre en place du SSL auto-signé sur l’ensemble de vos services.
