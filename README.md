@@ -226,14 +226,48 @@ else
 	echo "$FILE_TO_WATCH hasn't beed modified."
 fi;
 `
+On utilise md5sum pour crée un CHECKSUM du fichier une clef qui lui est propre qui change quand le fichier est modifier.
 
 ## Créez une tache plannifiée pour script tous les jours à minuit.
 
 Vu que notre script cherche les modification de `/etc/crontab` il serait peu sensé ce le placer dedans pour le lancer.
 Il sufirait de modifier crontab eb suprimant le ligne pour qu'il ne se lance plus !
 On va donc le lancer depuis le crontab de root : `/var/spool/cron/crontabs/root` ou `en su : crontab -e`
-La ligne : `# 0 0 * * * /bin/sh /path/to/this/script.sh`
+La ligne : `0 0 * * * root /root/scripts/cron_watchdog.sh`
 
 ##Partie optionnelle WEB
 
 ## Vous devez mettre en place du SSL auto-signé sur l’ensemble de vos services.
+Activation du module ssl de apache2
+`sudo a2enmod ssl`
+`sudo service apache2 restart`
+
+On ajoute un docier ssl `sudo mkdir /etc/apache2/ssl` pour générer le certificat ssl
+`sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/apache2/ssl/apache.key -out /etc/apache2/ssl/apache.crt`
+repondre aux questions pour le certificat
+
+On fait notre propre config ssl pour Roger Skyline : `rsync /etc/apache2/sites-available/default-ssl.conf /etc/apache2/sites-available/ssl-roger.conf`
+(rsync ou cp)
+sudo vim /etc/apache2/sites-available/ssl-roger.conf
+
+on modifie les ligne :
+`SSLCertificateFile /etc/apache2/ssl/apache.crt
+SSLCertificateKeyFile /etc/apache2/ssl/apache.key`
+
+Pour activer la coonfig : `a2ensite ssl-roger.conf`
+
+Ajout de `ServerName localhost` dans /etc/apache2/apache2.conf
+
+`sudo service apache2 restart`
+
+On test notre config avec les commande suivante : 
+`sudo apachectl configtest`
+`sudo a2enmod ssl`
+`sudo a2ensite ssl-roger.conf`
+
+Si il y a aucun message d'erreur la config est corect et fini ! 
+
+## Vous devez mettre en place un serveur web qui DOIT être disponible sur l’IP de laVM ou un host
+
+On peut a présent proposer une pageweb html sur l'ip de nottre machine.
+`/var/www/html`
