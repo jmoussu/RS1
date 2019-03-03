@@ -6,24 +6,24 @@ J'utilise une VM Ubuntu server !
 
 `sudo vim /etc/network/interfaces`
 
-/ # The primary network interface
-/ auto enp0s3
+`# The primary network interface
+auto enp0s3
 
-/ #DHCP :
-/ #iface enp0s3 inet dhcp
+#DHCP :
+#iface enp0s3 inet dhcp
 
-/ #STATIC :
-/ iface enp0s3 inet static
-/ #	ip a pour l'adresse ou ifconfig
-/ 	address 10.11.200.173
-/ #	/30
-/ 	netmask 255.255.255.252
-/ #	ip root
-/ 	gateway 10.13.254.254
-/ #	dns
-/ 	dns-nameservers 8.8.8.8
-/ 	dns-nameservers 8.8.4.4
-/ 	dns-search something.network.com
+#STATIC :
+iface enp0s3 inet static
+#	ip a pour l'adresse ou ifconfig change en fonction du poste / cluster.
+address 10.11.200.173
+#	/30
+ 	netmask 255.255.255.252
+#	ip route pour la getway
+ 	gateway 10.13.254.254
+#	dns
+ 	dns-nameservers 8.8.8.8
+ 	dns-nameservers 8.8.4.4
+ 	dns-search something.network.comi`
 
 
 `sudo /etc/init.d/networking restart`
@@ -67,19 +67,22 @@ sudo ufw default deny incoming`
 
 `sudo ufw status`
 donne :
-/ État : actif
-/ Vers                       Action      De
-/ ----                       ------      --
-/ 1666                       ALLOW       Anywhere
-/ 80/tcp                     ALLOW       Anywhere
-/ 443                        ALLOW       Anywhere
-/ 1666 (v6)                  ALLOW       Anywhere (v6)
-/ 80/tcp (v6)                ALLOW       Anywhere (v6)
-/ 443 (v6)                   ALLOW       Anywhere (v6)
+État : actif
+Vers                       Action      De
+----                       ------      --
+1666                       ALLOW       Anywhere
+80/tcp                     ALLOW       Anywhere
+443                        ALLOW       Anywhere
+1666 (v6)                  ALLOW       Anywhere (v6)
+80/tcp (v6)                ALLOW       Anywhere (v6)
+443 (v6)                   ALLOW       Anywhere (v6)
 
 ## Vous devez mettre en place une protection contre les DOS (Denial Of Service Attack) sur les ports ouverts de votre VM.
 J'ai utilise fail2ban
 avec ce tuto https://blog.rapid7.com/2017/02/13/how-to-protect-ssh-and-apache-using-fail2ban-on-ubuntu-linux/
+
+New jail : `sudo nano /etc/fail2ban/jail.local`
+`sudo nano /etc/fail2ban/filters.d/http-get-dos.conf`
 
 Cmd utile :
 Jail list :
@@ -88,6 +91,13 @@ Ip ban list :
 `sudo fail2ban-client status ssh` ou apach http-get-dos...
 Unban ip.
 `sudo fail2ban-client set ssh unbanip 10.11.x.x`
+
+test le dos avec : ab (Apache Bench-mark tool)
+`ab -n 1000 -c 20 http://10.11.x.x/` ou le ssh (Pour ab regarder la prison 
+`sudo fail2ban-client status http-get-dos` )
+voir le log et donc le ban :
+`tail -f /var/log/fail2ban.log`
+pour le ab 
 
 ## Vous devez mettre en place une protection contre les scans sur les ports ouverts de votre VM.
 tuto suivi : https://fr-wiki.ikoula.com/fr/Se_prot%C3%A9ger_contre_le_scan_de_ports_avec_portsentry
@@ -149,7 +159,7 @@ echo "Log are in /var/log/update_script.log"`
 On trouve dans var/log/update_script.log
 `
 
-//// NEW LOG ////
+`//// NEW LOG ////
 Date du jour :
 vendredi 1 mars 2019, 17:55:30 (UTC+0100)
 Atteint:1 http://fr.archive.ubuntu.com/ubuntu xenial InRelease
@@ -271,3 +281,9 @@ Si il y a aucun message d'erreur la config est corect et fini !
 
 On peut a présent proposer une pageweb html sur l'ip de nottre machine.
 `/var/www/html`
+
+## Sasum disk.vdi
+
+Faire copy de disk depuis VBOX
+` shasum < /sgoinfre/goinfre/Perso/jmoussu/RS1_Save.vdi > ~/Desktop/RS1_VogGit/shasum.txt`
+Faire une copi avant la corection et lancer vbox avec la copy
