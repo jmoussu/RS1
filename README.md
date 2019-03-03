@@ -7,24 +7,25 @@ J'utilise une VM Ubuntu server !
 `sudo vim /etc/network/interfaces`
 
 `
-// The primary network interface
+.. The primary network interface
 auto enp0s3
 
-//DHCP :
-//iface enp0s3 inet dhcp
+..DHCP :
+..iface enp0s3 inet dhcp
 
-//STATIC :
+..STATIC :
 iface enp0s3 inet static
-//	ip a pour l'adresse ou ifconfig change en fonction du poste / cluster.
+..	ip a pour l'adresse ou ifconfig change en fonction du poste / cluster.
 address 10.11.200.173
-//	/30
+..	/30
  	netmask 255.255.255.252
-//	ip route pour la getway
+..	ip route pour la getway
  	gateway 10.13.254.254
-//	dns
+..	dns
  	dns-nameservers 8.8.8.8
  	dns-nameservers 8.8.4.4
- 	dns-search something.network.com`
+ 	dns-search something.network.com
+`
 
 
 `sudo /etc/init.d/networking restart`
