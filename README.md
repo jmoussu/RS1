@@ -284,6 +284,11 @@ Si il y a aucun message d'erreur la config est corect et fini !
 On peut a présent proposer une pageweb html sur l'ip de nottre machine.
 `/var/www/html`
 
+## Deploiment
+
+changer le dossier `/var/www/html` en git
+placer le site sur le git
+
 ## Sasum disk.vdi
 
 Faire copy de disk depuis VBOX
