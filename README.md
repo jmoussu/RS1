@@ -125,11 +125,17 @@ et
 
 ##  Arretez les services dont vous n’avez pas besoin pour ce projet.
 
+Lancer la VM avec `VBoxHeadless -s maVM -v on`
+
  Lister les service :
  Absolument tout !
  `systemctl list-unit-files`
  Seulement les serice non statique (plus utile) :
- `sudo systemctl stop monservice`
+`sudo service --status-all`
+ Disable
+`sudo systemctl stop monservice`
+`sudo update-rc.d monservice disable`
+
 
  Ayant une VM déjà faite pour les serveur web je n'ai pas beaucoup de service inutile.
 
@@ -288,6 +294,8 @@ On peut a présent proposer une pageweb html sur l'ip de nottre machine.
 
 changer le dossier `/var/www/html` en git
 placer le site sur le git
+faire un script qui qit pull le repertoire
++crontab
 
 ## Sasum disk.vdi
 
