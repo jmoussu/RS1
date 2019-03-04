@@ -84,7 +84,7 @@ J'ai utilise fail2ban
 avec ce tuto https://blog.rapid7.com/2017/02/13/how-to-protect-ssh-and-apache-using-fail2ban-on-ubuntu-linux/
 
 New jail : `sudo nano /etc/fail2ban/jail.local`
-`sudo nano /etc/fail2ban/filters.d/http-get-dos.conf`
+`sudo nano /etc/fail2ban/filter.d/http-get-dos.conf`
 
 Cmd utile :
 Jail list :
